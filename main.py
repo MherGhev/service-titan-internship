@@ -73,7 +73,7 @@ class DataExtractor:
       total += item.get("unit_price") * quantity
     return total
 
-  def process_invoices(self):
+  def flatten_invoices(self):
     invoices = self.get_invoices()
     for invoice in invoices:
       if (invoice.get("items") is not None): # Some invoices have no items
@@ -93,13 +93,18 @@ class DataExtractor:
           }
           self.flat_rows.append(flat_row)
 
+  def convert_to_csv(self):
+    df = self.get_dataframe()
+    df.sort_values(by=["invoice_id", "invoice_item_id"], ascending=True)
+    df.to_csv("invoices.csv", index=False)
+
+  def get_dataframe(self):
+    return pd.DataFrame(self.flat_rows)
 
 extractor = DataExtractor()
+extractor.flatten_invoices()
 
-extractor.process_invoices()
-flat_rows = extractor.flat_rows
-
-df = pd.DataFrame(flat_rows)
+df = extractor.get_dataframe()
 
 print("Column Types")
 print(df.dtypes)
@@ -108,3 +113,5 @@ print("---------------------------------------------- \n")
 
 print("The Dataframe")
 print(df.to_string())
+
+extractor.convert_to_csv()
